@@ -2,18 +2,17 @@
 using System.Collections;
 using System.Collections.Generic;
 
-
 public class seaBoardMove : MonoBehaviour {
 
-	public float m_speed =10;
-	public float m_dragspeed =5;
+	public float m_speed = 10, m_dragspeed = 5;
 	public GameObject m_target;
 
-	private Dictionary<string,int> midiNum=new Dictionary<string,int>();
-	private Dictionary<int,string> midiStr=new Dictionary<int, string>();
+	private Dictionary<string,int> midiNum = new Dictionary<string,int>();
+	private Dictionary<int,string> midiStr = new Dictionary<int, string>();
 
 	// Use this for initialization
-	void Start () {
+	void Start () 
+	{
 		midiNum.Add ("G#", 68);
 		midiNum.Add ("Ab" , 68);
 		midiNum.Add ("A" , 69);
@@ -46,14 +45,13 @@ public class seaBoardMove : MonoBehaviour {
 		midiStr.Add ( 79, "G");
 	}
 
-	//board 58-84
-	//us 68-87
-	//	07_Ab+C+Eb+Gx4_90bpm
-	private int calcKey(){
-		char[] u = {'_'};
-		char[] x = {'x'};
-		char[] p = {'+'};
-		char[] m = {'-'};
+	// board 58-84
+	// us 68-87
+	// 07_Ab+C+Eb+Gx4_90bpm
+	private int calcKey()
+	{
+		char[] u = {'_'}, x = {'x'}, p = {'+'}, m = {'-'};
+
 		string audioName= m_target.GetComponent<AudioSource>().clip.name;
 		//Debug.Log (audioName);
 		string step1 = audioName.Split (u) [1];
@@ -61,20 +59,22 @@ public class seaBoardMove : MonoBehaviour {
 		string noteName = (step1.Split (x) [0]);
 
 		string[] notes = null;
-		if (noteName.Contains ("+")) {
-			notes= noteName.Split(p);
-		} else if (noteName.Contains ("-")) {
-			notes=noteName.Split (m);	
-			}
 
-//		string[] combinedNotes= noteName.Split (p);
-//		Debug.Log (notes);
+		if (noteName.Contains ("+")) {
+			notes = noteName.Split(p);
+		} 
+		else if (noteName.Contains ("-")) {
+			notes = noteName.Split(m);	
+		}
+
+		//string[] combinedNotes= noteName.Split (p);
+		//Debug.Log (notes);
 		Debug.Log (midiNum [noteName]);
 		return midiNum[noteName];
 	}
 
 	private ArrayList getInput(){
-		ArrayList notes_pressed=new ArrayList();
+		ArrayList notes_pressed = new ArrayList();
 		for (int i=68; i<88; i+=1) {
 			if (MidiJack.GetKey(i)>.1){
 				//Debug.Log("key pressed");
@@ -82,16 +82,17 @@ public class seaBoardMove : MonoBehaviour {
 			}
 		}
 
-//			if (notes_pressed.Count > 0) {
-//						foreach (int note in notes_pressed) {
-//								Debug.Log (midiStr[note]);
-//						}
+//		if (notes_pressed.Count > 0) {
+//			foreach (int note in notes_pressed) {
+//				Debug.Log (midiStr[note]);
 //			}
+//		}
 		return notes_pressed;
 	}
 
-	void findNewTarget(){
-		EnemyAI[] enemyList= FindObjectsOfType<EnemyAI> ();
+	void findNewTarget()
+	{
+		EnemyAI[] enemyList= FindObjectsOfType<EnemyAI>();
 		float closestDis = Mathf.Infinity;
 		GameObject closest = null;
 		foreach (EnemyAI enemyScript in enemyList) {
@@ -105,57 +106,58 @@ public class seaBoardMove : MonoBehaviour {
 			Debug.Log ("No enemies left");
 		} else {
 			m_target=closest;
-			Debug.Log("Closest Enemy"+ closest);
+			Debug.Log("Closest Enemy" + closest);
 		}
 	}
 
-	void moveToTarget ()
+	void moveToTarget()
 	{
-		rigidbody2D.AddForce(-rigidbody2D.velocity.normalized * m_dragspeed);
+		GetComponent<Rigidbody2D>().AddForce(-GetComponent<Rigidbody2D>().velocity.normalized * m_dragspeed);
 
 		float move = MidiJack.GetKey (calcKey ());
 		//Debug.Log (move);
 		if (move>.1){
 			Vector2 dif = m_target.transform.position - transform.position;
 			if ((dif).magnitude > 1) {
-				rigidbody2D.AddForce (dif.normalized * m_speed * move *10);
+				GetComponent<Rigidbody2D>().AddForce (dif.normalized * m_speed * move *10);
 			}
 		}
 	}
 
 	// Update is called once per frame
-	//65,67,69,71
-	void Update () {
+	// 65,67,69,71
+	void Update() 
+	{
 		if (gameObject != null){
 			if (m_target==null){
 				findNewTarget();
 			}
+
 			EnemyAI closestEnemy = m_target.GetComponent<EnemyAI> ();
 			if (!closestEnemy.isPlayingSound) {
 				StartCoroutine ( closestEnemy.playSound());
 			}
+
 			moveToTarget ();
 			getInput ();
 		}
 	}
 
-	void testingMove(){
-		float upKey = MidiJack.GetKey (65);
-		float downKey= MidiJack.GetKey (67);
-		float leftKey = MidiJack.GetKey (69);
-		float rightKey = MidiJack.GetKey (71);
-		rigidbody2D.AddForce(-rigidbody2D.velocity.normalized * m_dragspeed);
-		if (upKey>0.1){
-			rigidbody2D.AddForce(transform.up.normalized * m_speed * upKey * 10);
+	void testingMove()
+	{
+		float upKey = MidiJack.GetKey (65), downKey= MidiJack.GetKey (67), leftKey = MidiJack.GetKey (69), rightKey = MidiJack.GetKey (71);
+		GetComponent<Rigidbody2D>().AddForce(-GetComponent<Rigidbody2D>().velocity.normalized * m_dragspeed);
+		if (upKey>0.1) {
+			GetComponent<Rigidbody2D>().AddForce(transform.up.normalized * m_speed * upKey * 10);
 		}
 		if (downKey>0.1) {
-			rigidbody2D.AddForce(-transform.up.normalized * m_speed * downKey * 10);
+			GetComponent<Rigidbody2D>().AddForce(-transform.up.normalized * m_speed * downKey * 10);
 		}
 		if (leftKey>0.1) {
-			rigidbody2D.AddForce(-transform.right.normalized * m_speed * leftKey * 10);
+			GetComponent<Rigidbody2D>().AddForce(-transform.right.normalized * m_speed * leftKey * 10);
 		}
 		if (rightKey>0.1) {
-			rigidbody2D.AddForce(transform.right.normalized * m_speed * rightKey * 10);
+			GetComponent<Rigidbody2D>().AddForce(transform.right.normalized * m_speed * rightKey * 10);
 		}
 	}
 }

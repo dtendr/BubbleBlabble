@@ -2,19 +2,17 @@
 using System.Collections;
 using System.Collections.Generic;
 
-
 public class movementController : MonoBehaviour
 {	
-		public float m_speed =10;
-		public float m_dragspeed =5;
-		public GameObject m_target;
+	public float m_speed = 10, m_dragspeed = 5;
+	public GameObject m_target;
 
 	private Dictionary<string,int> midiNum=new Dictionary<string,int>();
 	private Dictionary<int,string> midiStr=new Dictionary<int, string>();
-		// Use this for initialization
-		void Start ()
-		{
-		
+
+	// Use this for initialization
+	void Start ()
+	{
 		midiNum.Add ("G#", 68);
 		midiNum.Add ("Ab" , 68);
 		midiNum.Add ("A" , 69);
@@ -45,9 +43,10 @@ public class movementController : MonoBehaviour
 		midiStr.Add ( 77, "F");
 		midiStr.Add ( 78, "Gb");
 		midiStr.Add ( 79, "G");
-		}
+	}
 
-	private int calcKey(){
+	private int calcKey()
+	{
 		char[] u = {'_'};
 		char[] x = {'x'};
 		char[] p = {'+'};
@@ -65,76 +64,80 @@ public class movementController : MonoBehaviour
 			notes=noteName.Split (m);	
 		}
 		
-		//		string[] combinedNotes= noteName.Split (p);
-		//		Debug.Log (notes);
+		//string[] combinedNotes= noteName.Split (p);
+		//Debug.Log (notes);
 		Debug.Log (midiNum [noteName]);
 		return midiNum[noteName];
 	}
 
+	void findNewTarget()
+	{
+		EnemyAI[] enemyList = FindObjectsOfType<EnemyAI>();
 
-		void findNewTarget(){
-			EnemyAI[] enemyList= FindObjectsOfType<EnemyAI> ();
-			float closestDis = Mathf.Infinity;
-			GameObject closest = null;
-			foreach (EnemyAI enemyScript in enemyList) {
-						float disToEnemy = (enemyScript.transform.position - gameObject.transform.position).magnitude;
-						if (disToEnemy < closestDis) {
-								closest = enemyScript.gameObject;
-								closestDis = disToEnemy;
-						}
+		float closestDis = Mathf.Infinity, disToEnemy;
+		GameObject closest = null;
+
+		foreach (EnemyAI enemyScript in enemyList) {
+			disToEnemy = (enemyScript.transform.position - gameObject.transform.position).magnitude;
+			if (disToEnemy < closestDis) {
+				closest = enemyScript.gameObject;
+				closestDis = disToEnemy;
 			}
-			if (closest == null) {
-				Debug.Log ("No enemies left");
-			} else {
+		}
+
+		if (closest == null) {
+			Debug.Log ("No enemies left");
+		} 
+		else {
 				m_target=closest;		
-			}
 		}
+	}
 
-		void moveToTarget ()
-		{
+	void moveToTarget()
+	{
 		calcKey ();
-			rigidbody2D.AddForce(-rigidbody2D.velocity.normalized * m_dragspeed);
-			string s = new string (midiStr [calcKey ()] [0], 1);
-//			Debug.Log ("Print Me!"+ midiStr[calcKey()][0]);
-			bool upKey = Input.GetKey (s.ToLower());
-			if (upKey){
-				Vector2 dif = m_target.transform.position - transform.position;
-				if ((dif).magnitude > 1) {
-					rigidbody2D.AddForce (dif.normalized * m_speed);
-				}
+		GetComponent<Rigidbody2D>().AddForce(-GetComponent<Rigidbody2D>().velocity.normalized * m_dragspeed);
+		string s = new string (midiStr [calcKey ()] [0], 1);
+		//Debug.Log ("Print Me!"+ midiStr[calcKey()][0]);
+		bool upKey = Input.GetKey (s.ToLower());
+
+		if (upKey) {
+			Vector2 dif = m_target.transform.position - transform.position;
+			if ((dif).magnitude > 1) {
+				GetComponent<Rigidbody2D> ().AddForce (dif.normalized * m_speed);
 			}
 		}
-		// Update is called once per frame
-		void Update ()
-		{
-		if (m_target==null){
-			findNewTarget();
-		}
-		EnemyAI closestEnemy = m_target.GetComponent<EnemyAI> ();
+	}
+
+	// Update is called once per frame
+	void Update()
+	{
+		if (m_target == null) {
+			findNewTarget ();
+		} else {
+			EnemyAI closestEnemy = m_target.GetComponent<EnemyAI> ();
 			if (!closestEnemy.isPlayingSound) {
-				StartCoroutine ( closestEnemy.playSound());
+				StartCoroutine (closestEnemy.playSound ());
 			}
 			moveToTarget ();
 		}
+	}
 
-		void testingMove(){
-				bool upKey = Input.GetKey ("w");
-				bool downKey = Input.GetKey ("s");
-				bool leftKey = Input.GetKey ("a");
-				bool rightKey = Input.GetKey ("d");
+	void testingMove(){
+		bool upKey = Input.GetKey ("w"), downKey = Input.GetKey ("s"), leftKey = Input.GetKey ("a"), rightKey = Input.GetKey ("d");
 		
-				rigidbody2D.AddForce (-rigidbody2D.velocity.normalized * m_dragspeed);
-				if (upKey) {
-						rigidbody2D.AddForce (transform.up.normalized * m_speed);
-				}
-				if (downKey) {
-						rigidbody2D.AddForce (-transform.up.normalized * m_speed);
-				}
-				if (leftKey) {
-						rigidbody2D.AddForce (-transform.right.normalized * m_speed);
-				}
-				if (rightKey) {
-						rigidbody2D.AddForce (transform.right.normalized * m_speed);
-				}
+		GetComponent<Rigidbody2D>().AddForce (-GetComponent<Rigidbody2D>().velocity.normalized * m_dragspeed);
+		if (upKey) {
+			GetComponent<Rigidbody2D>().AddForce (transform.up.normalized * m_speed);
 		}
+		if (downKey) {
+			GetComponent<Rigidbody2D>().AddForce (-transform.up.normalized * m_speed);
+		}
+		if (leftKey) {
+			GetComponent<Rigidbody2D>().AddForce (-transform.right.normalized * m_speed);
+		}
+		if (rightKey) {
+			GetComponent<Rigidbody2D>().AddForce (transform.right.normalized * m_speed);
+		}
+	}
 }
